@@ -70,7 +70,7 @@ static size_t char_escape(struct buf *ob, struct sd_markdown *rndr, uint8_t *dat
 static size_t char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_langle_tag(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_autolink_email(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
+static size_t char_autolink_ampersand(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_autolink_www(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_superscript(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
@@ -85,7 +85,7 @@ enum markdown_char_t {
 	MD_CHAR_ESCAPE,
 	MD_CHAR_ENTITITY,
 	MD_CHAR_AUTOLINK_URL,
-	MD_CHAR_AUTOLINK_EMAIL,
+	MD_CHAR_AUTOLINK_AMPERSAND,
 	MD_CHAR_AUTOLINK_WWW,
 	MD_CHAR_SUPERSCRIPT,
 };
@@ -100,7 +100,7 @@ static char_trigger markdown_char_ptrs[] = {
 	&char_escape,
 	&char_entity,
 	&char_autolink_url,
-	&char_autolink_email,
+	&char_autolink_ampersand,
 	&char_autolink_www,
 	&char_superscript,
 };
@@ -798,7 +798,7 @@ char_autolink_www(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 }
 
 static size_t
-char_autolink_email(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_autolink_ampersand(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
 {
 	struct buf *link;
 	size_t link_len, rewind;
@@ -811,6 +811,12 @@ char_autolink_email(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, siz
 	if ((link_len = sd_autolink__email(&rewind, link, data, offset, size, 0)) > 0) {
 		ob->size -= rewind;
 		rndr->cb.autolink(ob, link, MKDA_EMAIL, rndr->opaque);
+	} else {
+		/* If it isn't an email address it could be a @username */
+		if ((link_len = sd_autolink__username(&rewind, link, data, offset, size, 0)) > 0) {
+			ob->size -= rewind;
+			rndr->cb.autolink(ob, link, MKDA_USERNAME, rndr->opaque);
+		}
 	}
 
 	rndr_popbuf(rndr, BUFFER_SPAN);
@@ -2437,8 +2443,8 @@ sd_markdown_new(
 
 	if (extensions & MKDEXT_AUTOLINK) {
 		md->active_char[':'] = MD_CHAR_AUTOLINK_URL;
-		md->active_char['@'] = MD_CHAR_AUTOLINK_EMAIL;
 		md->active_char['w'] = MD_CHAR_AUTOLINK_WWW;
+		md->active_char['@'] = MD_CHAR_AUTOLINK_AMPERSAND;
 	}
 
 	if (extensions & MKDEXT_SUPERSCRIPT)

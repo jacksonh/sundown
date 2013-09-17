@@ -35,6 +35,7 @@ struct html_renderopt {
 	unsigned int flags;
 
 	/* extra callbacks */
+	void (*username_link_root)(struct buf *ob, const struct buf *url, void *self);
 	void (*link_attributes)(struct buf *ob, const struct buf *url, void *self);
 };
 

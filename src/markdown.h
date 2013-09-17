@@ -40,6 +40,7 @@ enum mkd_autolink {
 	MKDA_NOT_AUTOLINK,	/* used internally when it is not an autolink*/
 	MKDA_NORMAL,		/* normal http/http/ftp/mailto/etc link */
 	MKDA_EMAIL,			/* e-mail link without explit mailto: */
+	MKDA_USERNAME,		/* username link eg @codereviewcat */
 };
 
 enum mkd_tableflags {

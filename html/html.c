@@ -70,6 +70,24 @@ static inline void escape_href(struct buf *ob, const uint8_t *source, size_t len
 	houdini_escape_href(ob, source, length);
 }
 
+static void
+output_username_link (struct buf *ob, const struct buf *link, void *opaque)
+{
+	struct html_renderopt *options = opaque;
+
+	if (options->username_link_root) {
+		bufputc(ob, '\"');
+		options->username_link_root(ob, link, opaque);
+	} else {
+		/* seems like a decent default I guess */
+		BUFPUTSL(ob, "https://github.com/");
+	}
+	escape_href(ob, link->data + 1, link->size - 1);
+
+	/* also a sane default I guess */
+	BUFPUTSL (ob, "\" style='username-link'>");
+}
+
 /********************
  * GENERIC RENDERER *
  ********************/
@@ -89,15 +107,18 @@ rndr_autolink(struct buf *ob, const struct buf *link, enum mkd_autolink type, vo
 	BUFPUTSL(ob, "<a href=\"");
 	if (type == MKDA_EMAIL)
 		BUFPUTSL(ob, "mailto:");
-	escape_href(ob, link->data, link->size);
+	if (type != MKDA_USERNAME) {
+		escape_href(ob, link->data, link->size);
 
-	if (options->link_attributes) {
-		bufputc(ob, '\"');
-		options->link_attributes(ob, link, opaque);
-		bufputc(ob, '>');
-	} else {
-		BUFPUTSL(ob, "\">");
-	}
+		if (options->link_attributes) {
+			bufputc(ob, '\"');
+			options->link_attributes(ob, link, opaque);
+			bufputc(ob, '>');
+		} else {
+			BUFPUTSL(ob, "\">");
+		}
+	} else
+		output_username_link (ob, link, opaque);
 
 	/*
 	 * Pretty printing: if we get an email address as
