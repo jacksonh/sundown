@@ -27,7 +27,17 @@
     return [self convertMarkdownString:[NSString stringWithContentsOfURL:url encoding:NSUTF8StringEncoding error:nil]];
 }
 
-+ (NSString*)convertMarkdownString:(NSString *)markdownString {
++ (NSString*)convertMarkdownString:(NSString *)markdownString
+{
+	static unsigned int all_extensions =	MKDEXT_NO_INTRA_EMPHASIS |
+											MKDEXT_TABLES |
+											MKDEXT_FENCED_CODE |
+											MKDEXT_AUTOLINK |
+											MKDEXT_STRIKETHROUGH |
+											MKDEXT_SPACE_HEADERS |
+											MKDEXT_SUPERSCRIPT  |
+											MKDEXT_LAX_SPACING;
+
     if(!markdownString.length) {
         fprintf(stderr,"Empty string passed into conversion method.");
         return nil;
@@ -43,9 +53,9 @@
        
 	/* performing markdown parsing */
 	ob = bufnew(data.length);
-    
+
 	sdhtml_renderer(&callbacks, &options, 0);
-	markdown = sd_markdown_new(0, 16, &callbacks, &options);
+	markdown = sd_markdown_new(MKDEXT_AUTOLINK, 16, &callbacks, &options);
 	sd_markdown_render(ob, data.bytes, data.length, markdown);
 	sd_markdown_free(markdown);
 
