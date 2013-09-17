@@ -23,7 +23,8 @@ extern "C" {
 enum hoedown_autolink {
 	HOEDOWN_AUTOLINK_NONE,		/* used internally when it is not an autolink*/
 	HOEDOWN_AUTOLINK_NORMAL,	/* normal http/http/ftp/mailto/etc link */
-	HOEDOWN_AUTOLINK_EMAIL		/* e-mail link without explit mailto: */
+	HOEDOWN_AUTOLINK_EMAIL,		/* e-mail link without explit mailto: */
+	HOEDOWN_AUTOLINK_USERNAME,	/* username link eg @codereviewcat */
 };
 
 enum hoedown_tableflags {

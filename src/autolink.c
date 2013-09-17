@@ -277,3 +277,32 @@ hoedown_autolink__url(
 
 	return link_end;
 }
+
+size_t
+hoedown_autolink__username (
+	size_t *rewind_p,
+	hoedown_buffer *link,
+	uint8_t *data,
+	size_t max_rewind,
+	size_t size,
+	unsigned int flags)
+{
+	size_t uname_end, rewind = 0;
+
+	if (size < 2 || data[0] != '@' || !isalnum (data [1]))
+		return 0;
+
+	while (rewind < max_rewind && isalnum (data[-rewind - 1]))
+		rewind++;
+
+	uname_end = 1;
+	while (uname_end < size && isalnum (data[uname_end]))
+		uname_end++;
+
+	uname_end = autolink_delim(data, uname_end, max_rewind, size);
+
+	hoedown_buffer_put(link, data - rewind, uname_end + rewind);
+	*rewind_p = rewind;
+
+	return uname_end;
+}

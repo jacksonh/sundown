@@ -28,6 +28,10 @@ size_t
 hoedown_autolink__url(size_t *rewind_p, hoedown_buffer *link,
 	uint8_t *data, size_t offset, size_t size, unsigned int flags);
 
+size_t
+hoedown_autolink__username(size_t *rewind_p, hoedown_buffer *link,
+	uint8_t *data, size_t offset, size_t size, unsigned int flags);
+
 #ifdef __cplusplus
 }
 #endif

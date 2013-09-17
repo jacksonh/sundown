@@ -74,7 +74,7 @@ static size_t char_escape(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *d
 static size_t char_entity(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_langle_tag(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_autolink_url(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_autolink_email(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
+static size_t char_autolink_ampersand(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_autolink_www(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_link(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_superscript(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
@@ -89,7 +89,7 @@ enum markdown_char_t {
 	MD_CHAR_ESCAPE,
 	MD_CHAR_ENTITITY,
 	MD_CHAR_AUTOLINK_URL,
-	MD_CHAR_AUTOLINK_EMAIL,
+	MD_CHAR_AUTOLINK_AMPERSAND,
 	MD_CHAR_AUTOLINK_WWW,
 	MD_CHAR_SUPERSCRIPT,
 	MD_CHAR_QUOTE
@@ -105,7 +105,7 @@ static char_trigger markdown_char_ptrs[] = {
 	&char_escape,
 	&char_entity,
 	&char_autolink_url,
-	&char_autolink_email,
+	&char_autolink_ampersand,
 	&char_autolink_www,
 	&char_superscript,
 	&char_quote
@@ -923,7 +923,7 @@ char_autolink_www(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, siz
 }
 
 static size_t
-char_autolink_email(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_autolink_ampersand(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size)
 {
 	hoedown_buffer *link;
 	size_t link_len, rewind;
@@ -936,6 +936,12 @@ char_autolink_email(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, s
 	if ((link_len = hoedown_autolink__email(&rewind, link, data, offset, size, 0)) > 0) {
 		ob->size -= rewind;
 		rndr->cb.autolink(ob, link, HOEDOWN_AUTOLINK_EMAIL, rndr->opaque);
+	} else {
+		/* If it isn't an email address it could be a @username */
+		if ((link_len = hoedown_autolink__username(&rewind, link, data, offset, size, 0)) > 0) {
+			ob->size -= rewind;
+			rndr->cb.autolink(ob, link, HOEDOWN_AUTOLINK_USERNAME, rndr->opaque);
+		}
 	}
 
 	rndr_popbuf(rndr, BUFFER_SPAN);
@@ -2748,8 +2754,8 @@ hoedown_markdown_new(
 
 	if (extensions & HOEDOWN_EXT_AUTOLINK) {
 		md->active_char[':'] = MD_CHAR_AUTOLINK_URL;
-		md->active_char['@'] = MD_CHAR_AUTOLINK_EMAIL;
 		md->active_char['w'] = MD_CHAR_AUTOLINK_WWW;
+		md->active_char['@'] = MD_CHAR_AUTOLINK_AMPERSAND;
 	}
 
 	if (extensions & HOEDOWN_EXT_SUPERSCRIPT)

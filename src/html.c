@@ -52,6 +52,24 @@ static inline void escape_href(hoedown_buffer *ob, const uint8_t *source, size_t
 	hoedown_escape_href(ob, source, length);
 }
 
+static void
+output_username_link (hoedown_buffer *ob, const hoedown_buffer *link, void *opaque)
+{
+  hoedown_html_renderopt *options = opaque;
+
+  if (options->username_link_root) {
+    hoedown_buffer_putc(ob, '\"');
+    options->username_link_root(ob, link, opaque);
+  } else {
+    /* seems like a decent default I guess */
+    BUFPUTSL(ob, "https://github.com/");
+  }
+  escape_href(ob, link->data + 1, link->size - 1);
+
+  /* also a sane default I guess */
+  BUFPUTSL (ob, "\" style='username-link'>");
+}
+
 /********************
  * GENERIC RENDERER *
  ********************/
@@ -71,15 +89,19 @@ rndr_autolink(hoedown_buffer *ob, const hoedown_buffer *link, enum hoedown_autol
 	BUFPUTSL(ob, "<a href=\"");
 	if (type == HOEDOWN_AUTOLINK_EMAIL)
 		BUFPUTSL(ob, "mailto:");
-	escape_href(ob, link->data, link->size);
 
-	if (options->link_attributes) {
-		hoedown_buffer_putc(ob, '\"');
-		options->link_attributes(ob, link, opaque);
-		hoedown_buffer_putc(ob, '>');
-	} else {
-		BUFPUTSL(ob, "\">");
-	}
+	if (type != HOEDOWN_AUTOLINK_USERNAME) {
+	  escape_href(ob, link->data, link->size);
+
+	  if (options->link_attributes) {
+	    hoedown_buffer_putc(ob, '\"');
+	    options->link_attributes(ob, link, opaque);
+	    hoedown_buffer_putc(ob, '>');
+	  } else {
+	    BUFPUTSL(ob, "\">");
+	  }
+	} else
+	  output_username_link (ob, link, opaque);
 
 	/*
 	 * Pretty printing: if we get an email address as

@@ -41,6 +41,7 @@ struct hoedown_html_renderopt {
 	unsigned int flags;
 
 	/* extra callbacks */
+	void (*username_link_root)(hoedown_buffer *ob, const hoedown_buffer *url, void *self);
 	void (*link_attributes)(hoedown_buffer *ob, const hoedown_buffer *url, void *self);
 };
 
