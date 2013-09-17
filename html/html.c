@@ -91,6 +91,25 @@ output_username_link (struct buf *ob, const struct buf *link, void *opaque)
 /********************
  * GENERIC RENDERER *
  ********************/
+ static int
+rndr_emoji(struct buf *ob, const struct buf *name, void *opaque)
+{
+	struct html_renderopt *options = opaque;
+
+	if (!name || !name->size)
+		return 0;
+
+	if (options->emoji_link_root) {
+		BUFPUTSL(ob, "<img src=\"");
+		options->emoji_link_root(ob, name, opaque);
+	} else
+		BUFPUTSL(ob, "<img src=\"https://raw.github.com/arvida/emoji-cheat-sheet.com/master/public/graphics/emojis/");
+	escape_href(ob, name->data + 1, name->size - 2);
+	BUFPUTSL (ob, ".png\" style='emoji-img'>");
+
+	return 1;
+}
+
 static int
 rndr_autolink(struct buf *ob, const struct buf *link, enum mkd_autolink type, void *opaque)
 {
@@ -577,6 +596,7 @@ sdhtml_toc_renderer(struct sd_callbacks *callbacks, struct html_renderopt *optio
 		NULL,
 
 		NULL,
+		NULL,
 		rndr_codespan,
 		rndr_double_emphasis,
 		rndr_emphasis,
@@ -617,6 +637,7 @@ sdhtml_renderer(struct sd_callbacks *callbacks, struct html_renderopt *options, 
 		rndr_tablerow,
 		rndr_tablecell,
 
+		rndr_emoji,
 		rndr_autolink,
 		rndr_codespan,
 		rndr_double_emphasis,
