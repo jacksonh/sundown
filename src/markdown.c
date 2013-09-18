@@ -824,7 +824,7 @@ char_autolink_ampersand(struct buf *ob, struct sd_markdown *rndr, uint8_t *data,
 int
 is_emoji_char (uint8_t c)
 {
-	return (isalnum (c) || c == '+');
+	return (isalnum (c) || c == '+' || c == '-');
 }
 
 size_t
