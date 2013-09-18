@@ -313,13 +313,26 @@ static void
 rndr_listitem(struct buf *ob, const struct buf *text, int flags, void *opaque)
 {
 	BUFPUTSL(ob, "<li>");
+
+	int offset = 0;
+
+	if (flags & MKD_LI_INCOMPLETE_TASK || flags & MKD_LI_COMPLETED_TASK) {
+		bufprintf (ob, "<input type='checkbox' class='%s' value='%s'>",
+			"task-list-item-checkbox",
+			flags & MKD_LI_INCOMPLETE_TASK ? "on" : "off");
+		offset += 3;
+	}
+
 	if (text) {
 		size_t size = text->size;
 		while (size && text->data[size - 1] == '\n')
 			size--;
 
-		bufput(ob, text->data, size);
+		bufput(ob, text->data + offset, size - offset);
 	}
+
+	if ((flags & MKD_LI_COMPLETED_TASK) || (flags & MKD_LI_INCOMPLETE_TASK))
+		BUFPUTSL (ob, "</input>");
 	BUFPUTSL(ob, "</li>\n");
 }
 

@@ -108,8 +108,11 @@ struct sd_markdown;
  *********/
 
 /* list/listitem flags */
-#define MKD_LIST_ORDERED	1
-#define MKD_LI_BLOCK		2  /* <li> containing block data */
+#define MKD_LIST_ORDERED		(1 << 0)
+#define MKD_LI_BLOCK			(1 << 1)  /* <li> containing block data */
+#define MKD_LI_END				(1 << 2)  /* internal list flag */
+#define MKD_LI_COMPLETED_TASK	(1 << 3)  /* [x] todone item :-) */
+#define MKD_LI_INCOMPLETE_TASK	(1 << 4)  /* [ ] todo item :-(   */
 
 /**********************
  * EXPORTED FUNCTIONS *

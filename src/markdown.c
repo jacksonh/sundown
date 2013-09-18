@@ -34,8 +34,6 @@
 #define BUFFER_BLOCK 0
 #define BUFFER_SPAN 1
 
-#define MKD_LI_END 8	/* internal list flag */
-
 #define gperf_case_strncmp(s1, s2, n) strncasecmp(s1, s2, n)
 #define GPERF_DOWNCASE 1
 #define GPERF_CASE_STRNCMP 1
@@ -1770,6 +1768,13 @@ parse_listitem(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t s
 		/* adding the line without prefix into the working buffer */
 		bufput(work, data + beg + i, end - beg - i);
 		beg = end;
+	}
+
+	if (work->size > 3 && work->data [0] == '[' && work->data [2] == ']') {
+		/* The flags are a running state, so we need to reset them */
+		*flags &= ~MKD_LI_COMPLETED_TASK;
+		*flags &= ~MKD_LI_INCOMPLETE_TASK;
+		*flags |= (work->data [1] == 'x') ? MKD_LI_COMPLETED_TASK : MKD_LI_INCOMPLETE_TASK;
 	}
 
 	/* render of li contents */
