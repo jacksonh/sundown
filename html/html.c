@@ -105,7 +105,7 @@ rndr_emoji(struct buf *ob, const struct buf *name, void *opaque)
 	} else
 		BUFPUTSL(ob, "<img src=\"https://raw.github.com/arvida/emoji-cheat-sheet.com/master/public/graphics/emojis/");
 	escape_href(ob, name->data + 1, name->size - 2);
-	BUFPUTSL (ob, ".png\" style='emoji-img'>");
+	BUFPUTSL (ob, ".png\" class='emoji-img'>");
 
 	return 1;
 }
