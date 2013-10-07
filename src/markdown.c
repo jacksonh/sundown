@@ -73,7 +73,7 @@ static size_t char_codespan(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t 
 static size_t char_escape(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_entity(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_langle_tag(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_autolink_url(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
+static size_t char_autolink_colon(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_autolink_ampersand(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_autolink_www(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_link(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size);
@@ -88,7 +88,7 @@ enum markdown_char_t {
 	MD_CHAR_LANGLE,
 	MD_CHAR_ESCAPE,
 	MD_CHAR_ENTITITY,
-	MD_CHAR_AUTOLINK_URL,
+	MD_CHAR_AUTOLINK_COLON,
 	MD_CHAR_AUTOLINK_AMPERSAND,
 	MD_CHAR_AUTOLINK_WWW,
 	MD_CHAR_SUPERSCRIPT,
@@ -104,7 +104,7 @@ static char_trigger markdown_char_ptrs[] = {
 	&char_langle_tag,
 	&char_escape,
 	&char_entity,
-	&char_autolink_url,
+	&char_autolink_colon,
 	&char_autolink_ampersand,
 	&char_autolink_www,
 	&char_superscript,
@@ -672,6 +672,39 @@ parse_emph3(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t si
 	return 0;
 }
 
+size_t
+is_emoji (
+	size_t *rewind_p,
+	hoedown_buffer *link,
+	uint8_t *data,
+	size_t max_rewind,
+	size_t size,
+	unsigned int flags)
+{
+	size_t emoji_end, rewind = 0;
+
+	if (size < 3 || data[0] != ':' || !isalnum (data [1]))
+		return 0;
+
+	while (rewind < max_rewind && isalnum (data[-rewind - 1]))
+		rewind++;
+
+	emoji_end = 1;
+	while (emoji_end < size && isalnum (data[emoji_end]))
+		emoji_end++;
+
+	if (data[emoji_end] != ':')
+		return 0;
+
+	emoji_end += 1; // move past the final ':' char
+
+	hoedown_buffer_put(link, data - rewind, emoji_end + rewind);
+	*rewind_p = rewind;
+
+	return emoji_end;
+}
+
+
 /* char_emphasis • single and double emphasis parsing */
 static size_t
 char_emphasis(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size)
@@ -949,7 +982,7 @@ char_autolink_ampersand(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *dat
 }
 
 static size_t
-char_autolink_url(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_autolink_colon(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t offset, size_t size)
 {
 	hoedown_buffer *link;
 	size_t link_len, rewind;
@@ -962,6 +995,11 @@ char_autolink_url(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, siz
 	if ((link_len = hoedown_autolink__url(&rewind, link, data, offset, size, 0)) > 0) {
 		ob->size -= rewind;
 		rndr->cb.autolink(ob, link, HOEDOWN_AUTOLINK_NORMAL, rndr->opaque);
+	} else {
+		if ((link_len = is_emoji (&rewind, link, data, offset, size, 0)) > 0) {
+			ob->size -= rewind;
+			rndr->cb.emoji(ob, link, rndr->opaque);
+		}
 	}
 
 	rndr_popbuf(rndr, BUFFER_SPAN);
@@ -2753,7 +2791,7 @@ hoedown_markdown_new(
 	md->active_char['&'] = MD_CHAR_ENTITITY;
 
 	if (extensions & HOEDOWN_EXT_AUTOLINK) {
-		md->active_char[':'] = MD_CHAR_AUTOLINK_URL;
+		md->active_char[':'] = MD_CHAR_AUTOLINK_COLON;
 		md->active_char['w'] = MD_CHAR_AUTOLINK_WWW;
 		md->active_char['@'] = MD_CHAR_AUTOLINK_AMPERSAND;
 	}

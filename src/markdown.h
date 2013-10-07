@@ -69,6 +69,7 @@ struct hoedown_callbacks {
 	void (*footnote_def)(hoedown_buffer *ob, const hoedown_buffer *text, unsigned int num, void *opaque);
 
 	/* span level callbacks - NULL or return 0 prints the span verbatim */
+	int (*emoji)(hoedown_buffer *ob, const hoedown_buffer *link, void *opaque);
 	int (*autolink)(hoedown_buffer *ob, const hoedown_buffer *link, enum hoedown_autolink type, void *opaque);
 	int (*codespan)(hoedown_buffer *ob, const hoedown_buffer *text, void *opaque);
 	int (*double_emphasis)(hoedown_buffer *ob, const hoedown_buffer *text, void *opaque);

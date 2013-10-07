@@ -74,6 +74,25 @@ output_username_link (hoedown_buffer *ob, const hoedown_buffer *link, void *opaq
  * GENERIC RENDERER *
  ********************/
 static int
+rndr_emoji(hoedown_buffer *ob, const hoedown_buffer *name, void *opaque)
+{
+	hoedown_html_renderopt *options = opaque;
+
+	if (!name || !name->size)
+		return 0;
+
+	if (options->emoji_link_root) {
+		BUFPUTSL(ob, "<img src=\"");
+		options->emoji_link_root(ob, name, opaque);
+	} else
+		BUFPUTSL(ob, "<img src=\"https://raw.github.com/arvida/emoji-cheat-sheet.com/master/public/graphics/emojis/");
+	escape_href(ob, name->data + 1, name->size - 2);
+	BUFPUTSL (ob, ".png\" style='emoji-img'>");
+
+	return 1;
+}
+
+static int
 rndr_autolink(hoedown_buffer *ob, const hoedown_buffer *link, enum hoedown_autolink type, void *opaque)
 {
 	hoedown_html_renderopt *options = opaque;
@@ -700,6 +719,7 @@ hoedown_html_toc_renderer(hoedown_callbacks *callbacks, hoedown_html_renderopt *
 		NULL,
 
 		NULL,
+		NULL,
 		rndr_codespan,
 		rndr_double_emphasis,
 		rndr_emphasis,
@@ -750,6 +770,7 @@ hoedown_html_renderer(hoedown_callbacks *callbacks, hoedown_html_renderopt *opti
 		rndr_footnotes,
 		rndr_footnote_def,
 
+		rndr_emoji,
 		rndr_autolink,
 		rndr_codespan,
 		rndr_double_emphasis,
