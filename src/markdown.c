@@ -672,6 +672,12 @@ parse_emph3(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t si
 	return 0;
 }
 
+int
+is_emoji_char (uint8_t c)
+{
+	return (isalnum (c) || c == '+' || c == '-' || c == '_');
+}
+
 size_t
 is_emoji (
 	size_t *rewind_p,
@@ -683,14 +689,14 @@ is_emoji (
 {
 	size_t emoji_end, rewind = 0;
 
-	if (size < 3 || data[0] != ':' || !isalnum (data [1]))
+	if (size < 3 || data[0] != ':' || !is_emoji_char (data [1]))
 		return 0;
 
-	while (rewind < max_rewind && isalnum (data[-rewind - 1]))
+	while (rewind < max_rewind && is_emoji_char (data[-rewind - 1]))
 		rewind++;
 
 	emoji_end = 1;
-	while (emoji_end < size && isalnum (data[emoji_end]))
+	while (emoji_end < size && is_emoji_char (data[emoji_end]))
 		emoji_end++;
 
 	if (data[emoji_end] != ':')
