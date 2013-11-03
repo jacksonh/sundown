@@ -18,7 +18,6 @@
 #define BUFFER_BLOCK 0
 #define BUFFER_SPAN 1
 
-#define HOEDOWN_LI_END 8	/* internal list flag */
 
 const char *hoedown_find_block_tag(const char *str, unsigned int len);
 
@@ -1940,6 +1939,14 @@ parse_listitem(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, size_t
 		/* adding the line without prefix into the working buffer */
 		hoedown_buffer_put(work, data + beg + i, end - beg - i);
 		beg = end;
+	}
+
+	if (work->size > 3 && work->data [0] == '[' && work->data [2] == ']') {
+		/* The flags are a running state, so we need to reset them */
+		*flags |= HOEDOWN_LIST_TASK;
+		*flags &= ~HOEDOWN_LI_COMPLETED_TASK;
+		*flags &= ~HOEDOWN_LI_INCOMPLETE_TASK;
+		*flags |= (work->data [1] == 'x') ? HOEDOWN_LI_COMPLETED_TASK : HOEDOWN_LI_INCOMPLETE_TASK;
 	}
 
 	/* render of li contents */

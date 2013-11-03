@@ -366,7 +366,8 @@ static void
 rndr_list(hoedown_buffer *ob, const hoedown_buffer *text, int flags, void *opaque)
 {
 	if (ob->size) hoedown_buffer_putc(ob, '\n');
-	hoedown_buffer_put(ob, flags & HOEDOWN_LIST_ORDERED ? "<ol>\n" : "<ul>\n", 5);
+	hoedown_buffer_put(ob, flags & HOEDOWN_LIST_ORDERED ? "<ol" : "<ul", 3);
+	hoedown_buffer_puts(ob, flags & HOEDOWN_LIST_TASK ? " class='task-list'>\n" : ">\n");
 	if (text) hoedown_buffer_put(ob, text->data, text->size);
 	hoedown_buffer_put(ob, flags & HOEDOWN_LIST_ORDERED ? "</ol>\n" : "</ul>\n", 6);
 }
@@ -375,13 +376,26 @@ static void
 rndr_listitem(hoedown_buffer *ob, const hoedown_buffer *text, int flags, void *opaque)
 {
 	BUFPUTSL(ob, "<li>");
+
+	int offset = 0;
+
+	if (flags & HOEDOWN_LI_INCOMPLETE_TASK || flags & HOEDOWN_LI_COMPLETED_TASK) {
+		hoedown_buffer_printf (ob, "<input type='checkbox' class='%s' value='%s'>",
+			"task-list-item-checkbox",
+			flags & HOEDOWN_LI_INCOMPLETE_TASK ? "on" : "off");
+		offset += 3;
+	}
+
 	if (text) {
 		size_t size = text->size;
 		while (size && text->data[size - 1] == '\n')
 			size--;
 
-		hoedown_buffer_put(ob, text->data, size);
+		hoedown_buffer_put(ob, text->data + offset, size - offset);
 	}
+
+	if ((flags & HOEDOWN_LI_COMPLETED_TASK) || (flags & HOEDOWN_LI_INCOMPLETE_TASK))
+		BUFPUTSL (ob, "</input>");
 	BUFPUTSL(ob, "</li>\n");
 }
 

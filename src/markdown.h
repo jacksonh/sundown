@@ -106,8 +106,12 @@ typedef struct hoedown_markdown hoedown_markdown;
  *********/
 
 /* list/listitem flags */
-#define HOEDOWN_LIST_ORDERED	1
-#define HOEDOWN_LI_BLOCK		2	/* <li> containing block data */
+#define HOEDOWN_LIST_ORDERED    	(1 << 0)
+#define HOEDOWN_LIST_TASK			(1 << 1)
+#define HOEDOWN_LI_BLOCK      		(1 << 2)  /* <li> containing block data */
+#define HOEDOWN_LI_END        		(1 << 3)  /* internal list flag */
+#define HOEDOWN_LI_COMPLETED_TASK  	(1 << 4)  /* [x] todone item :-) */
+#define HOEDOWN_LI_INCOMPLETE_TASK  (1 << 5)  /* [ ] todo item :-(   */
 
 /**********************
  * EXPORTED FUNCTIONS *
