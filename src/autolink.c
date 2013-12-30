@@ -278,6 +278,12 @@ hoedown_autolink__url(
 	return link_end;
 }
 
+int
+is_uname_body_char (uint8_t c)
+{
+	return (isalnum (c) || c == '-');
+}
+
 size_t
 hoedown_autolink__username (
 	size_t *rewind_p,
@@ -289,14 +295,16 @@ hoedown_autolink__username (
 {
 	size_t uname_end, rewind = 0;
 
+	// unames have to start with an alphanum, but can contain 
+	// dashes after that. No other special chars are allowed.
 	if (size < 2 || data[0] != '@' || !isalnum (data [1]))
 		return 0;
 
-	while (rewind < max_rewind && isalnum (data[-rewind - 1]))
+	while (rewind < max_rewind && is_uname_body_char (data[-rewind - 1]))
 		rewind++;
 
 	uname_end = 1;
-	while (uname_end < size && isalnum (data[uname_end]))
+	while (uname_end < size && is_uname_body_char (data[uname_end]))
 		uname_end++;
 
 	uname_end = autolink_delim(data, uname_end, max_rewind, size);
