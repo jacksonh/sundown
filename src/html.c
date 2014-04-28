@@ -62,12 +62,12 @@ output_username_link (hoedown_buffer *ob, const hoedown_buffer *link, void *opaq
     options->username_link_root(ob, link, opaque);
   } else {
     /* seems like a decent default I guess */
-    BUFPUTSL(ob, "https://github.com/");
+    BUFPUTSL(ob, "username://");
   }
   escape_href(ob, link->data + 1, link->size - 1);
 
   /* also a sane default I guess */
-  BUFPUTSL (ob, "\" style='username-link'>");
+  BUFPUTSL (ob, "\" class='username-link'>");
 }
 
 /********************
@@ -85,7 +85,7 @@ rndr_emoji(hoedown_buffer *ob, const hoedown_buffer *name, void *opaque)
 		BUFPUTSL(ob, "<img src=\"");
 		options->emoji_link_root(ob, name, opaque);
 	} else
-		BUFPUTSL(ob, "<img src=\"https://raw.github.com/arvida/emoji-cheat-sheet.com/master/public/graphics/emojis/");
+		BUFPUTSL(ob, "<img src=\"../emojis/");
 	escape_href(ob, name->data + 1, name->size - 2);
 	BUFPUTSL (ob, ".png\" class='emoji-img'>");
 
