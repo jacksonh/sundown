@@ -754,6 +754,8 @@ hoedown_html_toc_renderer(hoedown_callbacks *callbacks, hoedown_html_renderopt *
 
 		NULL,
 		toc_finalize,
+
+		NULL,
 	};
 
 	memcpy(callbacks, &cb_default, sizeof(hoedown_callbacks));

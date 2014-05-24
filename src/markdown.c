@@ -680,6 +680,7 @@ is_emoji_char (uint8_t c)
 size_t
 is_emoji (
 	size_t *rewind_p,
+	hoedown_markdown *rndr,
 	hoedown_buffer *link,
 	uint8_t *data,
 	size_t max_rewind,
@@ -699,6 +700,9 @@ is_emoji (
 		emoji_end++;
 
 	if (data[emoji_end] != ':')
+		return 0;
+
+	if (rndr->cb.is_valid_emoji && !rndr->cb.is_valid_emoji (data, emoji_end, rndr->opaque))
 		return 0;
 
 	emoji_end += 1; // move past the final ':' char
@@ -1001,7 +1005,7 @@ char_autolink_colon(hoedown_buffer *ob, hoedown_markdown *rndr, uint8_t *data, s
 		ob->size -= rewind;
 		rndr->cb.autolink(ob, link, HOEDOWN_AUTOLINK_NORMAL, rndr->opaque);
 	} else {
-		if ((link_len = is_emoji (&rewind, link, data, offset, size, 0)) > 0) {
+		if ((link_len = is_emoji (&rewind, rndr, link, data, offset, size, 0)) > 0) {
 			ob->size -= rewind;
 			rndr->cb.emoji(ob, link, rndr->opaque);
 		}

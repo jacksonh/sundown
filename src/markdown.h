@@ -93,6 +93,8 @@ struct hoedown_callbacks {
 	/* header and footer */
 	void (*doc_header)(hoedown_buffer *ob, void *opaque);
 	void (*doc_footer)(hoedown_buffer *ob, void *opaque);
+
+	int (*is_valid_emoji)(uint8_t *data, int len, void *opaque);
 };
 
 typedef struct hoedown_callbacks hoedown_callbacks;
